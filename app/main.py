@@ -2,24 +2,77 @@ from abc import ABC
 
 
 class IntegerRange:
-    pass
+
+    def __init__(self, min_amount : int, max_amount: int) -> None:
+        self.min_amount = min_amount
+        self.max_amount = max_amount
+
+    def __set_name__(self, owner: any, name: str) -> None:
+        self.private_name = "_" + name
+
+    def __get__(self, instance: any, owner: any) -> int:
+        return getattr(instance, self.private_name)
+
+    def __set__(self, instance: any, value: int) -> None:
+        if not (self.min_amount <= value <= self.max_amount):
+            raise ValueError(
+                f"Number should be in range of {self.min_amount}"
+                f" and {self.max_amount}!"
+            )
+        setattr(instance, self.private_name, value)
 
 
 class Visitor:
-   pass
+
+    def __init__(self, name: str, age: int, weight: int, height: int) -> None:
+        self.name = name
+        self.age = age
+        self.weight = weight
+        self.height = height
 
 
 class SlideLimitationValidator(ABC):
-    pass
+
+    def __init__(self, age: int, weight: int, height: int) -> None:
+        self.age = age
+        self.weight = weight
+        self.height = height
 
 
 class ChildrenSlideLimitationValidator(SlideLimitationValidator):
-    pass
+
+    age = IntegerRange(4, 14)
+    weight = IntegerRange(80, 120)
+    height = IntegerRange(20, 50)
+
+    def __init__(self, age: int, weight: int, height: int) -> None:
+        super().__init__(age, weight, height)
 
 
 class AdultSlideLimitationValidator(SlideLimitationValidator):
-    pass
+
+    age = IntegerRange(14, 60)
+    weight = IntegerRange(120, 220)
+    height = IntegerRange(50, 120)
+
+    def __init__(self, age: int, weight: int, height: int) -> None:
+        super().__init__(age, weight, height)
 
 
 class Slide:
-    pass
+
+    def __init__(self, name: str, limitation_class: any) -> None:
+        self.name = name
+        self.limitation_class = limitation_class
+
+    def can_access(self, visitor: "Visitor") -> bool:
+
+        # Code that might raise an exception
+        try:
+            self.limitation_class(visitor.age, visitor.height, visitor.weight)
+
+        # Handle the specific error
+        except ValueError:
+            return False
+
+        return True
